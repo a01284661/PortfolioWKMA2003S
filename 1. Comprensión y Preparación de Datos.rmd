@@ -1,0 +1,238 @@
+---
+title: "Proyecto.0.0"
+author: "SamanthaRuelasValtierra A01704564"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Etapa 1. Conociendo el negocio
+
+## PARTE 2. COMPRENSIÓN Y PREPARACIÓN DE LOS DATOS
+
+Primero cargamos los datos de la estación sur. Vamos a eliminar la primera columna de los tiempos ya que no lo tomaremos en cuenta en nuestro analisis de la misma manera eliminaremos la columna de "RAINF" que es la variable de la precipitación ya que tiene solo 0s y no es significativa para nuestro analisis.
+
+```{r}
+library(readr)
+df <- read.csv("Sur.csv")
+tf <- read.csv("sur_enero.csv")
+
+borrar <- c("date","RAINF")
+df <- df[ , !(names(df) %in% borrar)]
+tf <- tf[ , !(names(tf) %in% borrar)]
+```
+
+Despues pasaremos cada variable a que sea tipo numerico para poder analisarla.
+
+```{r}
+df$CO = as.numeric(df$CO)
+df$NO = as.numeric(df$NO)
+df$NO2 = as.numeric(df$NO2)
+df$NOX = as.numeric(df$NOX)
+df$O3 = as.numeric(df$O3)
+df$PM10 = as.numeric(df$PM10)
+df$PM2.5 = as.numeric(df$PM2.5)
+df$PRS = as.numeric(df$PRS)
+df$RH = as.numeric(df$RH)
+df$SO2 = as.numeric(df$SO2)
+df$SR = as.numeric(df$SR)
+df$TOUT = as.numeric(df$TOUT)
+df$WSR = as.numeric(df$WSR)
+df$WDR = as.numeric(df$WDR)
+```
+
+Dado que tenemos muchos valores nulos eliminaremos
+
+```{r}
+df1 = na.omit(df)
+```
+
+## 1) Comprensión de los datos:
+
+### A. Dimensión del dataset. Indica cantidad de registros y columnas
+
+```{r}
+dim(df1)
+```
+
+```{r}
+dim(df)
+```
+
+Podemos ver como en el dataset tenemos 14 variables con 14254 observaciones, lo cual son todas las observaciones hechas entre 2022 y 2023. Sin comparamos esto con el dataset sin valores nulos vemos como hay una reduccion considerable de las dimensiones eliminando el 33% de las observaciones.
+
+### B.Describe claramente cada una de las variables, incluyendo su nombre, descripción, tipo (categórico/Numérico) y valores posibles que puede tomar, valores nulos.
+
+Tenemos 14 variables que tienen diferentes nombres los cuales elistaremos a continuación:
+
+PM10 -\> Material Particulado menor a 10 micrométros
+
+PM2.5 -\> Material Particulado menor a 2.5 micrométros
+
+O3 -\> Ozono ppb
+
+SO2 -\> Dióxido de Azufre ppb
+
+NO2 -\> Dioxido de Nitrógeno ppb
+
+CO -\> Monóxido de Carbono ppm
+
+NO -\> Monóxido de Nitrógeno ppb
+
+Nox -\> Es la suma de NO + NO2
+
+TOUT -\> Temperatura ºC
+
+RH -\> Humedad Relativa %
+
+SR -\> Radiación Solar kW/m2
+
+PRS -\> Presión Atmosférica mm Hg
+
+WSR -\> Velocidad del Viento Km/hr
+
+WDR -\> Dirección del Viento
+
+Todas las variables son numericas no negativas. Todas menos "WDR" van de 0 hasta un numero muy alto y este numero lo podemos tomar como maximo el maximo que tenemos en la basde de datos pero esta máxima podria aumentar. Sin embargo, WDR es el grado de inclinación de la dirección del viento entonces su valor maximo es 360.
+
+### C. Verifica la calidad de los datos: valores faltantes, valores de los datos, valores espurios o erróneos
+
+Como vimos anteriormente los datos tienen muchos valores nulos, en este caso vemos como la base de datos tiene el 33% de las observaciones que tienen valores nulos, lo cual es mucho. Sin embargo, como nos conto el socio formador al tener estos valores nulos podemos asegurar que los demás valores son certeros, por su metodo de recolección. Entonces, tenemos muchos valores nulos sin embargo podemos contar con la seguridad de que los demas datos son de calidad y hay muy poca probabilidad de que los datos sean erroneos.
+
+## 2) Preparación de los datos:
+
+### A. Selecciona el conjunto de datos a utilizar
+
+Selesccionamos el conjunto de los datos de la estacion sur para el mes de enero del 2022.Además utilizamos 13 variables predictoras y 1 variable predicha. Eliminamos la variable de "RAINF" ya que esta es nula y no nos da información. También eliminamos la variable de tiempo ya que no lo tomaremos en cuenta para nuestro analisis. Nuestra variable predicha sera el ozono que se clasifica con el nombre "O3".
+
+Además vamos a ver que variables nos conviene más usar para la detección del ozono. En este caso checaremos la correlación entre las variables y especificamente ver que pasa con la variable ozono.
+
+Para corroborar de manera más precisas que variables tienen realmente una relacioón con el ozono vamos a comparar las correlaciones de todos los datos y las correlaciones de un mes en especifico. En este caso tomamos enero. Si las relaciones que estamos viendo son fuertes se deberian de notar en los datos del mes y en los datos anuales.
+
+```{r}
+c = cor(df1)
+c[,5]
+```
+
+```{r}
+
+tf$CO = as.numeric(tf$CO)
+tf$NO = as.numeric(tf$NO)
+tf$NO2 = as.numeric(tf$NO2)
+tf$NOX = as.numeric(tf$NOX)
+tf$O3 = as.numeric(tf$O3)
+tf$PM10 = as.numeric(tf$PM10)
+tf$PM2.5 = as.numeric(tf$PM2.5)
+tf$PRS = as.numeric(tf$PRS)
+tf$RH = as.numeric(tf$RH)
+tf$SO2 = as.numeric(tf$SO2)
+tf$SR = as.numeric(tf$SR)
+tf$TOUT = as.numeric(tf$TOUT)
+tf$WSR = as.numeric(tf$WSR)
+tf$WDR = as.numeric(tf$WDR)
+tf1 = na.omit(tf)
+ct = cor(tf1)
+ct[,5]
+```
+
+De este conjunto de información deducimos que las variables más importantes y las que tomaremos en nuestro analisis son las meteorologicas en este caso serán : RH, SR, TOUT y WSR que son respectivamente Humedad Relativa, Radiación Solar, Temperatura y Velocidad del viento.
+
+```{r}
+data = df[,c(5,9,11,12,13)]
+data
+```
+
+### B. Limpieza de datos
+
+#### Elimina duplicados
+
+No podemos eliminar valores duplicados, ya que tenemos los datos tomados cada hora de cada día del mes. Por la forma en la que se tomaron los datos que nos comento el socio formador, por ello no vamos a eliminar observaciones aun que tengan los mismos valores.
+
+#### Corrige valores espurios o érroneos.
+
+Dada la forma en la que se tomaron los datos tomaron que no hay valores erroneos. Ya que, como nos comento el socio formador, tienen un sistema que evita los errores e intenta tener varias capaz de seguridad para evitar errores al tomar las medidas. En este sentido no cambiaremos los datos dados.
+
+#### Maneja valores faltantes
+
+Tenemos muchos valores que faltan en nuestro data set, lo que haremos sera cambiar el valor por el promedio del valor en la parte superior e inferior y si el valor otro valor nulo ya sea arriba o abajo de el se decide eliminar los valores.
+
+```{r}
+nulos <- function(l){
+  n = length(l)
+  for(i in 2:n-1){
+    if(!is.null(l[i-1]) & !is.null(l[i+1]) & is.null(l[i])){
+      l[i] = (l[i+1]+l[i-1])/2
+    }
+  }
+  return( l)
+}
+```
+
+```{r}
+data$O3 = nulos(data$O3)
+data$RH = nulos(data$RH)
+data$SR = nulos(data$SR)
+data$WSR = nulos(data$WSR)
+data$TOUT = nulos(data$TOUT)
+
+data$O3 = as.numeric(data$O3)
+data$RH = as.numeric(data$RH)
+data$WSR = as.numeric(data$WSR)
+data$SR = as.numeric(data$SR)
+data$TOUT = as.numeric(data$TOUT)
+```
+
+#### Maneja datos categóricos
+
+No tenemos datos categóricos, solo tenemos datos numericos.
+
+#### Maneja adecuadamente los valores atípicos (outliers) que encuentres en el dataset
+
+```{r}
+boxplot(data)
+```
+
+Vemos como O3 tiene muchos valores a tipicos, sin embargo lo consideraremos como parte de las consiciones normales del tiempo y del clima
+
+**3) Transformación de Datos**
+
+Vamos a transformar los datos para que cumplan la normativa del indice de aire. En la cual nos indica que para tener una medida certera del ozono este tiene que ser tomado en promedio mobil de 8 horas, entonces cambiamos los datos para que cumplan este factor.
+
+```{r}
+pm8 <- function(df) {
+  df$O3P <- NA
+  for (i in 8:nrow(df)){
+    sum <- 0
+    b <- 0
+    for (j in (i-7):(i)){
+      a <- df$O3[j]
+      if (!is.na(a)){
+        sum <- sum + df$O3[j]
+        b <- b + 1
+      }
+    }
+    
+    if (b >= 6){
+      df$O3P[i] <- sum/b
+    }
+  }
+  return(df)
+}
+
+```
+
+```{r}
+data = pm8(data)
+data = na.omit(data)
+data
+```
+
+```{r}
+write.csv(data, "datos_p1.1.csv")
+```
