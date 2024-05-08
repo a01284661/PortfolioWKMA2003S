@@ -1,0 +1,480 @@
+---
+title: "Evidencia 3"
+author: "SamanthaRuelasValtierra A01704564"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Evidencia 3
+
+##Checar los supuestos de los residuos
+
+```{r}
+rf <- read.csv("rsur2.csv")
+rc <- read.csv("rcentro2.csv")
+rse <- read.csv("rsureste2.3.csv")
+```
+
+### Normalidad de los residuos
+
+```{r}
+library(nortest)
+ad.test(rf$O3)
+```
+
+```{r}
+ad.test(rc$O3)
+```
+
+```{r}
+ad.test(rse$O3)
+```
+
+```{r}
+qqnorm(rf$O3)
+qqline(rf$O3)
+```
+
+H0 = Los residuos tienen una distribución Normal
+H1 = Los residuos no tienen una distribución Normal
+Dado que el valor p es menor a alfa podemos decir que podemos rechazar que los residuos tengan una
+distribución Normal.Lo cual no cumple con los supuestos de la regresión.
+
+### Verificación de media cero
+
+```{r}
+t.test(rf$O3,conf.level = 0.95)
+```
+
+```{r}
+t.test(rc$O3,conf.level = 0.95)
+```
+
+```{r}
+t.test(rse$O3,conf.level = 0.95)
+```
+
+Nuestras hipotesis:
+H0 = MR = 0
+H1 = MR != 0
+Dado que p es mayor a nuestro alfa no podemos rechazar que la media sea 0. Lo cual cumple con los supuestos
+de la regresión.
+
+### Homocedasticidad
+
+```{r}
+plot(rf$X, rf$O3)
+abline(h=0, col = "blue", lty = 2)
+```
+
+```{r}
+plot(rc$X, rc$O3)
+abline(h=0, col = "blue", lty = 2)
+```
+
+```{r}
+plot(rse$X, rse$O3)
+abline(h=0, col = "blue", lty = 2)
+```
+
+## Importamos base de datos con fecha y ozono por mes desde el 2020 al 2023
+
+```{r}
+ene20 <- read.csv("sureste_01_20.csv")
+feb20 <- read.csv("sureste_02_20.csv")
+mar20 <- read.csv("sureste_03_20.csv")
+abr20 <- read.csv("sureste_04_20.csv")
+may20 <- read.csv("sureste_05_20.csv")
+jun20 <- read.csv("sureste_06_20.csv")
+jul20 <- read.csv("sureste_07_20.csv")
+ago20 <- read.csv("sureste_08_20.csv")
+sep20 <- read.csv("sureste_09_20.csv")
+oct20 <- read.csv("sureste_10_20.csv")
+nov20 <- read.csv("sureste_11_20.csv")
+dic20 <- read.csv("sureste_12_20.csv")
+```
+
+
+```{r}
+ene21 <- read.csv("sureste_01_21.csv")
+feb21 <- read.csv("sureste_02_21.csv")
+mar21 <- read.csv("sureste_03_21.csv")
+abr21 <- read.csv("sureste_04_21.csv")
+may21 <- read.csv("sureste_05_21.csv")
+jun21 <- read.csv("sureste_06_21.csv")
+jul21 <- read.csv("sureste_07_21.csv")
+ago21 <- read.csv("sureste_08_21.csv")
+sep21 <- read.csv("sureste_09_21.csv")
+oct21 <- read.csv("sureste_10_21.csv")
+nov21 <- read.csv("sureste_11_21.csv")
+dic21 <- read.csv("sureste_12_21.csv")
+```
+
+
+
+```{r}
+ene22 <- read.csv("sureste_01_22.csv")
+feb22 <- read.csv("sureste_02_22.csv")
+mar22 <- read.csv("sureste_03_22.csv")
+abr22 <- read.csv("sureste_04_22.csv")
+may22 <- read.csv("sureste_05_22.csv")
+jun22 <- read.csv("sureste_06_22.csv")
+jul22 <- read.csv("sureste_07_22.csv")
+ago22 <- read.csv("sureste_08_22.csv")
+sep22 <- read.csv("sureste_09_22.csv")
+oct22 <- read.csv("sureste_10_22.csv")
+nov22 <- read.csv("sureste_11_22.csv")
+dic22 <- read.csv("sureste_12_22.csv")
+```
+
+```{r}
+ene23 <- read.csv("sureste_01_23.csv")
+feb23 <- read.csv("sureste_02_23.csv")
+mar23 <- read.csv("sureste_03_23.csv")
+abr23 <- read.csv("sureste_04_23.csv")
+may23 <- read.csv("sureste_05_23.csv")
+jun23 <- read.csv("sureste_06_23.csv")
+jul23 <- read.csv("sureste_07_23.csv")
+ago23 <- read.csv("sureste_08_23.csv")
+```
+
+### eliminamos NULLs
+
+```{r}
+ene20 <- ene20[!ene20$O3=="NULL",]
+feb20 <- feb20[!feb20$O3=="NULL",]
+mar20 <- mar20[!mar20$O3=="NULL",]
+abr20 <- abr20[!abr20$O3=="NULL",]
+may20 <- may20[!may20$O3=="NULL",]
+jun20 <- jun20[!jun20$O3=="NULL",]
+jul20 <- jul20[!jul20$O3=="NULL",]
+ago20 <- ago20[!ago20$O3=="NULL",]
+sep20 <- sep20[!sep20$O3=="NULL",]
+oct20 <- oct20[!oct20$O3=="NULL",]
+nov20 <- nov20[!nov20$O3=="NULL",]
+dic20 <- dic20[!dic20$O3=="NULL",]
+```
+
+```{r}
+ene21 <- ene21[!ene21$O3=="NULL",]
+feb21 <- feb21[!feb21$O3=="NULL",]
+mar21 <- mar21[!mar21$O3=="NULL",]
+abr21 <- abr21[!abr21$O3=="NULL",]
+may21 <- may21[!may21$O3=="NULL",]
+jun21 <- jun21[!jun21$O3=="NULL",]
+jul21 <- jul21[!jul21$O3=="NULL",]
+ago21 <- ago21[!ago21$O3=="NULL",]
+sep21 <- sep21[!sep21$O3=="NULL",]
+oct21 <- oct21[!oct21$O3=="NULL",]
+nov21 <- nov21[!nov21$O3=="NULL",]
+dic21 <- dic21[!dic21$O3=="NULL",]
+```
+
+```{r}
+ene22 <- ene22[!ene22$O3=="NULL",]
+feb22 <- feb22[!feb22$O3=="NULL",]
+mar22 <- mar22[!mar22$O3=="NULL",]
+abr22 <- abr22[!abr22$O3=="NULL",]
+may22 <- may22[!may22$O3=="NULL",]
+jun22 <- jun22[!jun22$O3=="NULL",]
+jul22 <- jul22[!jul22$O3=="NULL",]
+ago22 <- ago22[!ago22$O3=="NULL",]
+sep22 <- sep22[!sep22$O3=="NULL",]
+oct22 <- oct22[!oct22$O3=="NULL",]
+nov22 <- nov22[!nov22$O3=="NULL",]
+dic22 <- dic22[!dic22$O3=="NULL",]
+```
+
+```{r}
+ene23 <- ene23[!ene23$O3=="NULL",]
+feb23 <- feb23[!feb23$O3=="NULL",]
+mar23 <- mar23[!mar23$O3=="NULL",]
+abr23 <- abr23[!abr23$O3=="NULL",]
+may23 <- may23[!may23$O3=="NULL",]
+jun23 <- jun23[!jun23$O3=="NULL",]
+jul23 <- jul23[!jul23$O3=="NULL",]
+ago23 <- ago23[!ago23$O3=="NULL",]
+```
+
+# Medias de ozono
+
+```{r}
+ene20m <- mean(na.omit(as.numeric(ene20$O3)))
+feb20m <- mean(na.omit(as.numeric(feb20$O3)))
+mar20m <- mean(na.omit(as.numeric(mar20$O3)))
+abr20m <- mean(na.omit(as.numeric(abr20$O3)))
+may20m <- mean(na.omit(as.numeric(may20$O3)))
+jun20m <- mean(na.omit(as.numeric(jun20$O3)))
+jul20m <- mean(na.omit(as.numeric(jul20$O3)))
+ago20m <- mean(na.omit(as.numeric(ago20$O3)))
+sep20m <- mean(na.omit(as.numeric(sep20$O3)))
+oct20m <- mean(na.omit(as.numeric(oct20$O3)))
+nov20m <- mean(na.omit(as.numeric(nov20$O3)))
+dic20m <- mean(na.omit(as.numeric(dic20$O3)))
+```
+
+```{r}
+ene21m <- mean(na.omit(as.numeric(ene21$O3)))
+feb21m <- mean(na.omit(as.numeric(feb21$O3)))
+mar21m <- mean(na.omit(as.numeric(mar21$O3)))
+abr21m <- mean(na.omit(as.numeric(abr21$O3)))
+may21m <- mean(na.omit(as.numeric(may21$O3)))
+jun21m <- mean(na.omit(as.numeric(jun21$O3)))
+jul21m <- mean(na.omit(as.numeric(jul21$O3)))
+ago21m <- mean(na.omit(as.numeric(ago21$O3)))
+sep21m <- mean(na.omit(as.numeric(sep21$O3)))
+oct21m <- mean(na.omit(as.numeric(oct21$O3)))
+nov21m <- mean(na.omit(as.numeric(nov21$O3)))
+dic21m <- mean(na.omit(as.numeric(dic21$O3)))
+```
+
+
+```{r}
+ene22m <- mean(na.omit(as.numeric(ene22$O3)))
+feb22m <- mean(na.omit(as.numeric(feb22$O3)))
+mar22m <- mean(na.omit(as.numeric(mar22$O3)))
+abr22m <- mean(na.omit(as.numeric(abr22$O3)))
+may22m <- mean(na.omit(as.numeric(may22$O3)))
+jun22m <- mean(na.omit(as.numeric(jun22$O3)))
+jul22m <- mean(na.omit(as.numeric(jul22$O3)))
+ago22m <- mean(na.omit(as.numeric(ago22$O3)))
+sep22m <- mean(na.omit(as.numeric(sep22$O3)))
+oct22m <- mean(na.omit(as.numeric(oct22$O3)))
+nov22m <- mean(na.omit(as.numeric(nov22$O3)))
+dic22m <- mean(na.omit(as.numeric(dic22$O3)))
+```
+
+```{r}
+ene23m <- mean(na.omit(as.numeric(ene23$O3)))
+feb23m <- mean(na.omit(as.numeric(feb23$O3)))
+mar23m <- mean(na.omit(as.numeric(mar23$O3)))
+abr23m <- mean(na.omit(as.numeric(abr23$O3)))
+may23m <- mean(na.omit(as.numeric(may23$O3)))
+jun23m <- mean(na.omit(as.numeric(jun23$O3)))
+jul23m <- mean(na.omit(as.numeric(jul23$O3)))
+ago23m <- mean(na.omit(as.numeric(ago23$O3)))
+```
+
+### Creamos la serie mensual
+
+```{r}
+serie <- c(ene20m,feb20m,mar20m,abr20m,may20m,jun20m,jul20m,ago20m,sep20m,oct20m,nov20m,dic20m,ene21m,feb21m,mar21m,abr21m,may21m,jun21m,jul21m,ago21m,sep21m,oct21m,nov21m,dic21m,ene22m,feb22m,mar22m,abr22m,may22m,jun22m,jul22m,ago22m,sep22m,oct22m,nov22m,dic22m,ene23m,feb23m,mar23m,abr23m,may23m,jun23m,jul23m,ago23m)
+```
+
+```{r}
+t <- 1:44
+plot(t, serie, type ="o", col ="blue", main = "Serie de tiempo de ozono promedio por mes 2020-2023. estación sureste.", xlab = "Mes", ylab = "Ozono ppb")
+abline(v = 12, lty = 3)
+abline(v = 24, lty = 3 )
+abline(v = 36, lty = 3)
+text(5, 10, "2020", adj = 0, cex = .7) 
+text(17,  10, "2021",adj = 0, cex = 0.7)
+text(29,  10, "2022",adj = 0, cex = 0.7)
+text(41,  10, "2023",adj = 0, cex = 0.7)
+```
+
+### Descomposición
+
+```{r}
+x <- ts(serie,frequency = 12)
+plot.ts(x, col = "red")
+T = decompose(x)
+plot(T, col ="blue")
+```
+
+prueba de estacionariedad 
+
+```{r}
+library(tseries)
+adf.test(serie)
+```
+
+### Desestacionalizado
+
+```{r}
+y = T$x-T$seasonal
+plot(t, y, type = "o", main = "Tendencia de la serie", xlab = "mes", ylab = "O3", lwd = 2, pch = 19)
+regresion = lm(y ~ t)
+regresion
+summary(regresion)
+abline(regresion, col ="red", lwd =2)
+text(12, 30.0, "O3 = 25.84 + 0.042 t", col = "red")
+```
+
+### Pronóstico
+
+```{r}
+e = NA
+g = NA
+f = function(t) 28.84 + (0.042*t)
+for(i in 1:44){
+g[i] = f(i)+T$seasonal[i]
+e[i] = x[i]- g[i]
+}
+CME_tendencia = mean(e^2, na.rm = TRUE)
+cat("El CME del Método de proyección de tendencia es: ", CME_tendencia, "\n")
+```
+
+```{r}
+plot(t, x, col ="red", type = "o", lwd = 2, pch = 19)
+lines(t, g, col = "blue", type = "o", lwd =2, lty = 5)
+legend("topleft", legend = c("O3", "pronóstico"), fill = c("red", "blue"))
+```
+
+### Serie por trimestre:
+
+```{r}
+p20 <- mean(ene20m,feb20m,mar20m)
+s20 <- mean(abr20m,may20m,jun20m)
+t20 <- mean(jul20m,ago20m,sep20m)
+c20 <- mean(oct20m,nov20m,dic20m)
+```
+
+```{r}
+p21 <- mean(ene21m,feb21m,mar21m)
+s21 <- mean(abr21m,may21m,jun21m)
+t21 <- mean(jul21m,ago21m,sep21m)
+c21 <- mean(oct21m,nov21m,dic21m)
+```
+
+```{r}
+p22 <- mean(ene22m,feb22m,mar22m)
+s22 <- mean(abr22m,may22m,jun22m)
+t22 <- mean(jul22m,ago22m,sep22m)
+c22 <- mean(oct22m,nov22m,dic22m)
+```
+
+```{r}
+p23 <- mean(ene23m,feb23m,mar23m)
+s23 <- mean(abr23m,may23m,jun23m)
+```
+
+```{r}
+t2 <- 1:14
+serie2 <- c(p20,s20,t20,c20,p21,s21,t21,c21,p22,s22,t22,c22,p23,s23)
+plot(t2, serie2, type ="o", col ="blue", main = "Serie de Tiempo de ozono por trimestre 2020-2023. Estación Sureste", xlab = "Trimestre", ylab = "Ozono ppb")
+abline(v = 4, lty = 3)
+abline(v = 8, lty = 3 )
+abline(v = 12, lty = 3)
+text(2, 22, "2020", adj = 0, cex = 0.7) 
+text(6,  22, "2021",adj = 0, cex = 0.7)
+text(10,  22, "2022",adj = 0, cex = 0.7)
+text(13,  22, "2023",adj = 0, cex = 0.7)
+```
+
+
+### Descomposición
+
+```{r}
+x2 <- ts(serie2,frequency = 4)
+plot.ts(x2, col = "red")
+T2 = decompose(x2)
+plot(T2, col ="blue")
+```
+
+### Desestacionalizado
+
+```{r}
+y1 = T2$x-T2$seasonal
+plot(t2, y1, type = "o", main = "Tendencia de la serie", xlab = "trimestre", ylab = "O3", lwd = 2, pch = 19)
+regresion = lm(y1 ~ t2)
+regresion
+summary(regresion)
+abline(regresion, col ="red", lwd =2)
+text(8.6, 28.0, "O3 = 29.22 - 0.21 t2", col = "red")
+```
+
+### Pronóstico
+
+```{r}
+e = NA
+g = NA
+f = function(t2) 29.22 - (0.21*t2)
+for(i in 1:14){
+g[i] = f(i)+T2$seasonal[i]
+e[i] = x2[i]- g[i]
+}
+CME_tendencia = mean(e^2, na.rm = TRUE)
+cat("El CME del Método de proyección de tendencia es: ", CME_tendencia, "\n")
+```
+
+```{r}
+EPAM_tendencia = mean(abs(e)/x2)*100
+cat("El EPAM del Método de proyección de tendencia es: ", EPAM_tendencia, "%\n")
+```
+
+
+```{r}
+t3 <- 1:18
+for(i in 1:14){
+g[i] = f(i)+T2$seasonal[i]
+}
+g[15] = f(15)+T2$seasonal[3]
+g[16] = f(16)+T2$seasonal[4]
+g[17] = f(17)+T2$seasonal[1]
+g[18] = f(18)+T2$seasonal[2]
+```
+
+
+```{r}
+plot(t3, g, col = "blue", type = "o", lwd =2, lty = 5, xlab= "Trimestre", ylab = "Ozono ppb", main = "Serie de Tiempo Ozono por trimestre con pronóstico Estación Sureste")
+lines(t2, x2, col ="red", type = "o", lwd = 2, pch = 19)
+legend("topright", legend = c("O3", "pronóstico"), fill = c("red", "blue"))
+abline(v = 4, lty = 3)
+abline(v = 8, lty = 3 )
+abline(v = 12, lty = 3)
+abline(v = 16, lty = 3)
+text(2, 20, "2020", adj = 0, cex = 0.7) 
+text(6,  20, "2021",adj = 0, cex = 0.7)
+text(10,  20, "2022",adj = 0, cex = 0.7)
+text(14,  20, "2023",adj = 0, cex = 0.7)
+text(17.5,  20, "2024",adj = 0, cex = 0.7)
+```
+##Regresión Polinomial
+
+```{r}
+Ms <- read.csv("sur2.2.csv")
+Mse <- read.csv("sureste3.csv")
+Mc <- read.csv("centro2.csv")
+M2s <- Ms[,c(3,4,5,6,7,8,9)]
+M2se <- Mse[,c(3,4,5,6,7,8,9)]
+M2c <- Mc[,c(3,4,5,6,7,8,9)]
+
+modelo_s <- lm(O3 ~ poly(RH, SR, TOUT, WSR, MONTH, HORA, degree = 4), data = M2s)
+modelo_se <- lm(O3 ~ poly(RH, SR, TOUT, WSR, MONTH, HORA, degree = 4), data = M2se)
+modelo_c <- lm(O3 ~ poly(RH, SR, TOUT, WSR, MONTH, HORA, degree = 4), data = M2c)
+```
+
+```{r}
+summary(modelo_s)$r.squared
+summary(modelo_se)$r.squared
+summary(modelo_c)$r.squared
+```
+
+```{r}
+library(car)
+library(carData)
+library(lmtest)
+bptest(modelo_s)
+bptest(modelo_se)
+bptest(modelo_c)
+```
+
+```{r}
+
+library(lmtest)
+dwtest(modelo_s)
+plot(modelo_s$residuals)
+dwtest(modelo_se)
+plot(modelo_se$residuals)
+dwtest(modelo_c)
+plot(modelo_c$residuals)
+
+```
+
+
