@@ -1,0 +1,551 @@
+---
+title: "Evidencia2_multivariados"
+author: "SamanthaRuelasValtierra A01704564"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Etapas 2. Conociendo los datos
+
+## Funciones
+
+```{r}
+library(readr)
+df <- read.csv("Sur.csv")
+dso <- read.csv("Noroeste2.csv")
+dc <- read.csv("centro.csv")
+dse <-read.csv("Sureste.csv")
+
+borrar <- c("RAINF","CO","NO","NO2","NOX","PM10","PM2.5","SO2","PRS","WDR")
+df <- df[ , !(names(df) %in% borrar)]
+dso <- dso[ , !(names(dso) %in% borrar)]
+dc <- dc[ , !(names(dc) %in% borrar)]
+dse <- dse[ , !(names(dse) %in% borrar)]
+```
+
+```{r}
+tnum <- function(data){
+  data$O3 = as.numeric(data$O3)
+  data$RH = as.numeric(data$RH)
+  data$WSR = as.numeric(data$WSR)
+  data$SR = as.numeric(data$SR)
+  data$TOUT = as.numeric(data$TOUT)
+  
+  return(data)
+}
+```
+
+```{r}
+
+hora <- function(df) {
+  df$HORA <- NA
+  for (i in 1:nrow(df)){
+    df$HORA[i] <- ((df$date[i] - df$date[1])/3600)%%24
+  }
+  df$HORA = as.numeric(df$HORA)
+  return(df)
+}
+
+
+
+
+```
+
+```{r}
+pm8 <- function(df) {
+  df$O3P <- NA
+  for (i in 8:nrow(df)){
+    sum <- 0
+    b <- 0
+    for (j in (i-7):(i)){
+      a <- df$O3[j]
+      if (!is.na(a)){
+        sum <- sum + df$O3[j]
+        b <- b + 1
+      }
+    }
+    
+    if (b >= 6){
+      df$O3P[i] <- sum/b
+    }
+  }
+  return(df)
+}
+```
+
+```{r}
+calidad <- function(df) {
+  df$CALIDAD <- NA
+  for (i in 1:nrow(df)){
+    if (df$O3[i] > 1000*0.175 || df$O3P[i] > 1000*0.114){
+      df$CALIDAD[i] <- "Extremadamente Mala"
+    } else if (df$O3[i] > 1000*0.135 || df$O3P[i] > 1000*0.092) {
+      df$CALIDAD[i] <- "Muy Mala"
+    } else if (df$O3[i] > 1000*0.095 || df$O3P[i] > 1000*0.070) {
+      df$CALIDAD[i] <- "Mala"
+    } else if (df$O3[i] > 1000*0.051 || df$O3P[i] > 1000*0.051) {
+      df$CALIDAD[i] <- "Aceptable"
+    } else {
+      df$CALIDAD[i] <- "Buena"
+    }
+  }
+  return(df)
+}
+```
+
+```{r}
+prepro <- function(df){
+  df = tnum(df)
+  df$date <- as.numeric(as.POSIXct(df$date, format = "%d/%m/%Y %H:%M"))
+  df$MONTH <- format(as.POSIXct(df$date, origin = "1970-01-01", tz = "UTC"), "%m")
+  df=hora(df)
+  df = pm8(df)
+  df = na.omit(df)
+  df = df[df$RH > -0.001, ]
+  df = df[df$SR > -0.001, ]
+  df = df[df$WSR > -0.001, ]
+  
+  df = df[df$RH < 999, ]
+  df = df[df$SR < 999, ]
+  df = df[df$WSR < 999, ]
+  df <- calidad(df)
+  
+  return(df)
+}
+```
+
+```{r}
+library(readxl)
+
+suppressWarnings({
+
+excel_file <- "DATOS HISTÓRICOS 2022_2023_TODAS ESTACIONES.xlsx"
+
+sheet_names <- excel_sheets(excel_file)
+
+df_list <- list()
+
+for (sheet_name in sheet_names) {
+  df <- read_excel(excel_file, sheet = sheet_name)
+  df_list[[sheet_name]] <- df
+}
+
+df_list <- df_list[!names(df_list) == "CATÁLOGO"]
+
+borrar <- c("RAINF","CO","NO","NO2","NOX","PM10","PM2.5","SO2","PRS","WDR")
+for (sheet_name in names(df_list)) {
+  df <- df_list[[sheet_name]]
+  df <- df[ , !(names(df) %in% borrar)]
+  df_list[[sheet_name]] <- prepro(df)
+  }
+})
+```
+
+```{r}
+par(mfrow = c(3, 5))
+for (sheet_name in names(df_list)) {
+  
+  desired_order <- c("Buena", "Aceptable", "Mala", "Muy Mala", "Extremadamente Mala")
+  data_factor <- factor(df_list[[sheet_name]]$CALIDAD, levels = desired_order)
+  plot(table(data_factor), ylab = "Frecuencia", xlab = "Calidad de Aire", cex.axis = 1, col = "red")
+  t <- paste(sheet_name, "( n = ", dim(df_list[[sheet_name]])[1], ")")
+  title(main = t)
+  }
+```
+
+```{r}
+numd <- function(df){
+  d = df
+  borrar <- c("date","MONTH","HORA","CALIDAD")
+  d <- d[ , !(names(d) %in% borrar)]
+  return(d)
+}
+
+```
+## Aplicacion
+
+## Variables Cualitativas
+```{r}
+# Sur
+df = prepro(df)
+dn = numd(df)
+
+table(df$CALIDAD)
+```
+
+```{r}
+dim(df)
+```
+
+```{r}
+# Suroeste
+dso = prepro(dso)
+dson = numd(dso)
+
+table(dso$CALIDAD)
+dim(dso)
+```
+
+
+
+
+
+```{r}
+# Centro
+dc = prepro(dc)
+dcn = numd(dc)
+
+table(dc$CALIDAD)
+```
+
+```{r}
+# Sureste
+dse = prepro(dse)
+dsen = numd(dse)
+
+table(dse$CALIDAD)
+```
+### Grafica de Pastel
+```{r}
+colores <- c("Aceptable" = "yellow", "Buena" = "green", "Mala" = "orange", "Muy Mala" = "red")
+
+calidad_s = as.data.frame(table(df$CALIDAD))
+colnames(calidad_s) = c("Calidad", "Frecuencia")
+frecuencias = calidad_s$Frecuencia
+categorias = calidad_s$Calidad
+pie(frecuencias, labels = sprintf("%1f%%", frecuencias[1:3]*100 / sum(frecuencias)), col = colores, cex = 0.8)
+title("Sur", cex = 1.9)
+legend("topleft", legend = names(colores), fill = colores, title = "Índice de Aire y Salud")
+calidad_se = as.data.frame(table(dse$CALIDAD))
+colnames(calidad_se) = c("Calidad", "Frecuencia")
+frecuencias1 = calidad_se$Frecuencia
+categorias1 = calidad_se$Calidad
+pie(frecuencias1, labels = sprintf("%1f%%", frecuencias1[1:3]*100 / sum(frecuencias1)), col = colores, cex = 0.8)
+title("Sureste")
+legend("topleft", legend = names(colores), fill = colores, title = "Índice de Aire y Salud")
+calidad_c = as.data.frame(table(dc$CALIDAD))
+colnames(calidad_c) = c("Calidad", "Frecuencia")
+frecuencias2 = calidad_c$Frecuencia
+categorias2 = calidad_c$Calidad
+pie(frecuencias2, labels = sprintf("%1f%%", frecuencias2[1:3]*100 / sum(frecuencias2)), col = colores, cex = 0.8)
+title("Centro")
+legend("topleft", legend = names(colores), fill = colores, title = "Índice de Aire y Salud")
+```
+### Gráfico de barras
+```{r}
+par(mfrow=c(1,3))
+barplot(calidad_s$Frecuencia, names.arg = calidad_s$Calidad, col = colores, main = "Sur", cex.names = 0.65)
+barplot(calidad_se$Frecuencia, names.arg = calidad_se$Calidad, col = colores, main = "Sureste",cex.names = 0.65)
+barplot(calidad_c$Frecuencia, names.arg = calidad_c$Calidad, col = colores, main = "Centro",cex.names = 0.65)
+
+```
+
+## Variables Cuantitativas
+
+### Comparación de las variables entre los meses con mayor y menor promedio de ozono 
+
+```{r}
+df6 = df[ which(df$MONTH == "06"),]
+df12 = df[ which(df$MONTH == "12"),]
+```
+
+```{r}
+summary(df6)
+summary(df12)
+```
+
+### Medidas de Posición Central
+
+```{r}
+# Sur
+summary(dn)
+```
+
+```{r}
+# Suroeste
+summary(dson)
+```
+
+```{r}
+# Centro
+summary(dcn)
+```
+
+```{r}
+# Sureste
+summary(dsen)
+```
+
+```{r}
+dim(dn) #sur
+dim(dsen) #sureste
+dim(dcn) #centro
+```
+#### Modas
+
+```{r}
+# Sur
+moda_s= data.frame(c(sort(table(dn$O3), decreasing = TRUE)[1],
+sort(table(dn$RH), decreasing = TRUE)[1],
+sort(table(dn$SR), decreasing = TRUE)[1],
+sort(table(dn$TOUT), decreasing = TRUE)[1],
+sort(table(dn$WSR), decreasing = TRUE)[1],
+sort(table(dn$O3P), decreasing = TRUE)[1]))
+colnames(moda_s) = c("Frecuencia de Moda")
+moda_s
+
+```
+
+```{r}
+# Sureste
+moda_se= data.frame(c(sort(table(dsen$O3), decreasing = TRUE)[1],
+sort(table(dsen$RH), decreasing = TRUE)[1],
+sort(table(dsen$SR), decreasing = TRUE)[1],
+sort(table(dsen$TOUT), decreasing = TRUE)[1],
+sort(table(dsen$WSR), decreasing = TRUE)[1],
+sort(table(dsen$O3P), decreasing = TRUE)[1]))
+colnames(moda_se) = c("Frecuencia de Moda")
+moda_se
+```
+
+```{r}
+# Centro
+moda_c= data.frame(c(sort(table(dsen$O3), decreasing = TRUE)[1],
+sort(table(dc$RH), decreasing = TRUE)[1],
+sort(table(dc$SR), decreasing = TRUE)[1],
+sort(table(dc$TOUT), decreasing = TRUE)[1],
+sort(table(dc$WSR), decreasing = TRUE)[1],
+sort(table(dc$O3P), decreasing = TRUE)[1]))
+colnames(moda_c) = c("Frecuencia de Moda")
+moda_c
+```
+
+### Medidas de Posición No Central
+
+#### Diagrama de Caja y Bigotes
+```{r}
+par(mfrow= c(1,3))
+boxplot(dn, vertical = TRUE, main = "Estación Sur", xlab = "", col = "cyan", cex.main = 1.2, cex.lab = 1.0,cex.axis = 0.6)
+boxplot(dsen, vertical = TRUE, main = "Estación Sureste", xlab = "", col = "green", cex.main = 1.2, cex.lab = 1.0,cex.axis = 0.6)
+boxplot(dcn, vertical = TRUE, main = "Estación Centro", xlab = "", col = "orange", cex.main = 1.2, cex.lab = 1.0,cex.axis = 0.6)
+
+
+```
+#### Datos atípicos
+
+Se utilizó la rstudent como el primer delimitante.
+```{r}
+library(car)
+library(lmtest)
+
+mods = lm(dn$O3~dn$RH+dn$SR+dn$TOUT+dn$WSR)
+modse = lm(dsen$O3~dsen$RH+dsen$SR+dsen$TOUT+dsen$WSR)
+modc = lm(dcn$O3~dcn$RH+dcn$SR+dcn$TOUT+dcn$WSR)
+sum(rstudent(mods) < -3 | rstudent(mods) > 3)/length(dn$O3)
+sum(rstudent(modse) < -3 | rstudent(modse) > 3)/length(dsen$O3)
+sum(rstudent(modc) < -3 | rstudent(modc) > 3)/length(dcn$O3)
+#dim(dn[rstudent(mods) < -3 | rstudent(mods) > 3, ]) #sur
+#dim(dsen[rstudent(modse) < -3 | rstudent(modse) > 3, ])#sureste
+#dim(dcn[rstudent(modc) < -3 | rstudent(modc) > 3, ]) #centro
+
+```
+
+##### Datos influyentes
+Utilizando el método de "hat values"
+```{r}
+ob_hat = function(A2, y, p){
+hat=hatvalues(A2)
+n = length(y)
+vh = (2.5*(p+1))/n
+return(hat>vh)
+}
+
+sum(ob_hat(mods, dn$O3, 4))/length(dn$O3)
+sum(ob_hat(modse, dsen$O3, 4))/length(dsen$O3)
+sum(ob_hat(modc, dcn$O3, 4))/length(dcn$O3)
+```
+
+```{r}
+# Sur 
+influencePlot(mods, id=TRUE)
+```
+
+```{r}
+# Sureste
+influencePlot(modse, id=TRUE)
+```
+
+```{r}
+# Centro
+influencePlot(modc, id=TRUE)
+```
+
+#### Histogramas
+
+```{r}
+par(mfrow=c(2,3))
+hist_data = hist(dn$O3, plot = FALSE)
+breaks = hist_data$breaks
+hist(dn$O3, main = "Ozono", xlab = "ppb", ylab = "Frecuencia", col = "cyan", xlim = c(0, 200), cex.axis = .65)
+x = seq(min(dn$O3), max(dn$O3), length = 13676)
+dd = dnorm(x, mean = mean(dn$O3), sd = sd(dn$O3))
+dn_scaled = dd * diff(breaks[1:2]) * length(dn$O3)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dn$RH, plot = FALSE)
+breaks = hist_data$breaks
+hist(dn$RH, main = "Humedad Relativa", xlab = "%", ylab = "Frecuencia", col = "cyan", xlim = c(0, 100), ylim = c(0, 1400), cex.axis = .65)
+x = seq(min(dn$RH), max(dn$RH), length = 13676)
+dd = dnorm(x, mean = mean(dn$RH), sd = sd(dn$RH))
+dn_scaled = dd * diff(breaks[1:2]) * length(dn$RH)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dn$SR, plot = FALSE)
+breaks = hist_data$breaks
+hist(dn$SR, main = "Radiación Solar", xlab = "kW/m2", ylab = "Frecuencia", col = "cyan", xlim = c(0, .8), cex.axis = .65)
+x = seq(min(dn$SR), max(dn$SR), length = 13676)
+dd = dnorm(x, mean = mean(dn$SR), sd = sd(dn$SR))
+dn_scaled = dd * diff(breaks[1:2]) * length(dn$SR)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dn$TOUT, plot = FALSE)
+breaks = hist_data$breaks
+hist(dn$TOUT, main = "Temperatura", xlab = "ºC", ylab = "Frecuencia", col = "cyan", xlim = c(0, 50), cex.axis = .65)
+x = seq(min(dn$TOUT), max(dn$TOUT), length = 13676)
+dd = dnorm(x, mean = mean(dn$TOUT), sd = sd(dn$TOUT))
+dn_scaled = dd * diff(breaks[1:2]) * length(dn$TOUT)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dn$WSR, plot = FALSE)
+breaks = hist_data$breaks
+hist(dn$WSR, main = "Viento", xlab = "Km/hr", ylab = "Frecuencia", col = "cyan", xlim = c(0, 35), ylim = c(0, 3000), cex.axis = .65)
+x = seq(min(dn$WSR), max(dn$WSR), length = 13676)
+dd = dnorm(x, mean = mean(dn$WSR), sd = sd(dn$WSR))
+dn_scaled = dd * diff(breaks[1:2]) * length(dn$WSR)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dn$O3P, plot = FALSE)
+breaks = hist_data$breaks
+hist(dn$O3P, main = "Promedio Móvil", xlab = "ppb", ylab = "Frecuencia", col = "cyan", xlim = c(0, 120), cex.axis = .65)
+x = seq(min(dn$O3P), max(dn$O3P), length = 13676)
+dd = dnorm(x, mean = mean(dn$O3P), sd = sd(dn$O3P))
+dn_scaled = dd * diff(breaks[1:2]) * length(dn$O3P)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+mtext("Estación Sur", outer = TRUE, cex = .8, line = -1.3)
+```
+
+```{r}
+par(mfrow=c(2,3))
+
+hist_data = hist(dsen$O3, plot = FALSE)
+breaks = hist_data$breaks
+hist(dsen$O3, main = "Ozono", xlab = "ppb", ylab = "Frecuencia", col = "green", xlim = c(0, 200), cex.axis= .65)
+x = seq(min(dsen$O3), max(dsen$O3), length = 13722)
+dd = dnorm(x, mean = mean(dsen$O3), sd = sd(dsen$O3))
+dn_scaled = dd * diff(breaks[1:2]) * length(dsen$O3)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dsen$RH, plot = FALSE)
+breaks = hist_data$breaks
+hist(dsen$RH, main = "Humedad Relativa", xlab = "%", ylab = "Frecuencia", col = "green", xlim = c(0, 100), ylim= c(0,1400), cex.axis= .65)
+x = seq(min(dsen$RH), max(dsen$RH), length = 13722)
+dd = dnorm(x, mean = mean(dsen$RH), sd = sd(dsen$RH))
+dn_scaled = dd * diff(breaks[1:2]) * length(dsen$RH)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dsen$SR, plot = FALSE)
+breaks = hist_data$breaks
+hist(dsen$SR, main = "Radiación Solar", xlab = "kW/m2", ylab = "Frecuencia", col = "green", xlim = c(0, .8), cex.axis= .65)
+x = seq(min(dsen$SR), max(dsen$SR), length = 13722)
+dd = dnorm(x, mean = mean(dsen$SR), sd = sd(dsen$SR))
+dn_scaled = dd * diff(breaks[1:2]) * length(dsen$SR)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dsen$TOUT, plot = FALSE)
+breaks = hist_data$breaks
+hist(dsen$TOUT, main = "Temperatura", xlab = "ºC", ylab = "Frecuencia", col = "green", xlim = c(0, 50), cex.axis= .65)
+x = seq(min(dsen$TOUT), max(dsen$TOUT), length = 13722)
+dd = dnorm(x, mean = mean(dsen$TOUT), sd = sd(dsen$TOUT))
+dn_scaled = dd * diff(breaks[1:2]) * length(dsen$TOUT)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dsen$WSR, plot = FALSE)
+breaks = hist_data$breaks
+hist(dsen$WSR, main = "Viento", xlab = "Km/hr", ylab = "Frecuencia", col = "green", xlim = c(0, 35), ylim= c(0,3000),cex.axis= .65)
+x = seq(min(dcn$WSR), max(dsen$WSR), length = 13722)
+dd = dnorm(x, mean = mean(dsen$WSR), sd = sd(dsen$WSR))
+dn_scaled = dd * diff(breaks[1:2]) * length(dsen$WSR)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dsen$O3P, plot = FALSE)
+breaks = hist_data$breaks
+hist(dsen$O3P, main = "Promedio Móvil", xlab = "ppb", ylab = "Frecuencia", col = "green", xlim = c(0, 120), cex.axis= .65)
+x = seq(min(dsen$O3P), max(dsen$O3P), length = 13722)
+dd = dnorm(x, mean = mean(dsen$O3P), sd = sd(dsen$O3P))
+dn_scaled = dd * diff(breaks[1:2]) * length(dsen$O3P)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+mtext("Estación Sureste", outer = TRUE, cex = 0.8, line = -1.3)
+```
+
+```{r}
+par(mfrow=c(2,3))
+
+hist_data = hist(dcn$O3, plot = FALSE)
+breaks = hist_data$breaks
+hist(dcn$O3, main = "Ozono", xlab = "ppb", ylab = "Frecuencia", col = "orange", xlim = c(0, 200), cex.axis= .65)
+x = seq(min(dcn$O3), max(dcn$O3), length = 13455)
+dd = dnorm(x, mean = mean(dcn$O3), sd = sd(dcn$O3))
+dn_scaled = dd * diff(breaks[1:2]) * length(dcn$O3)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dcn$RH, plot = FALSE)
+breaks = hist_data$breaks
+hist(dcn$RH, main = "Humedad Relativa", xlab = "%", ylab = "Frecuencia", col = "orange", xlim = c(0, 100), ylim= c(0,1400), cex.axis= .65)
+x = seq(min(dcn$RH), max(dcn$RH), length = 13455)
+dd = dnorm(x, mean = mean(dcn$RH), sd = sd(dcn$RH))
+dn_scaled = dd * diff(breaks[1:2]) * length(dcn$RH)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dcn$SR, plot = FALSE)
+breaks = hist_data$breaks
+hist(dcn$SR, main = "Radiación Solar", xlab = "kW/m2", ylab = "Frecuencia", col = "orange", xlim = c(0, 1.2), cex.axis= .65)
+x = seq(min(dcn$SR), max(dcn$SR), length = 13455)
+dd = dnorm(x, mean = mean(dcn$SR), sd = sd(dcn$SR))
+dn_scaled = dd * diff(breaks[1:2]) * length(dcn$SR)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dcn$TOUT, plot = FALSE)
+breaks = hist_data$breaks
+hist(dcn$TOUT, main = "Temperatura", xlab = "ºC", ylab = "Frecuencia", col = "orange", xlim = c(0, 50), cex.axis= .65)
+x = seq(min(dcn$TOUT), max(dcn$TOUT), length = 13455)
+dd = dnorm(x, mean = mean(dcn$TOUT), sd = sd(dcn$TOUT))
+dn_scaled = dd * diff(breaks[1:2]) * length(dcn$TOUT)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dcn$WSR, plot = FALSE)
+breaks = hist_data$breaks
+hist(dcn$WSR, main = "Viento", xlab = "Km/hr", ylab = "Frecuencia", col = "orange", xlim = c(0, 30), ylim= c(0,3000),cex.axis= .65)
+x = seq(min(dcn$WSR), max(dcn$WSR), length = 13455)
+dd = dnorm(x, mean = mean(dcn$WSR), sd = sd(dcn$WSR))
+dn_scaled = dd * diff(breaks[1:2]) * length(dcn$WSR)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+hist_data = hist(dcn$O3P, plot = FALSE)
+breaks = hist_data$breaks
+hist(dcn$O3P, main = "Promedio Móvil", xlab = "ppb", ylab = "Frecuencia", col = "orange", xlim = c(0, 120), cex.axis= .65)
+x = seq(min(dcn$O3P), max(dcn$O3P), length = 13455)
+dd = dnorm(x, mean = mean(dcn$O3P), sd = sd(dcn$O3P))
+dn_scaled = dd * diff(breaks[1:2]) * length(dcn$O3P)
+lines(x, dn_scaled, col = "blue", lwd = 2)
+
+mtext("Estación Centro", outer = TRUE, cex = 0.8, line = -1.3)
+```
+
+
